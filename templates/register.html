@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Criar conta – Taskify</title>
+  <style>
+    :root{
+      --bg:#0f0f0f; --panel:#151515; --border:#2a2a2a; --muted:#bdbdbd;
+      --txt:#eaeaea; --accent:#00ff88; --accent-2:#00e078;
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font-family:Arial,system-ui; display:grid; place-items:center;
+      min-height:100vh; padding:24px;
+    }
+    .card{
+      width:min(460px,92vw); background:#141414;
+      border:1px solid var(--border); border-radius:14px;
+      padding:22px 18px 18px;
+    }
+    h1{ margin:0 0 4px 0; font-size:1.6rem }
+    .hint{ color:var(--muted); font-size:.95rem; margin-bottom:16px }
+    label{ display:block; font-weight:700; margin:12px 0 6px }
+    input{
+      width:100%; padding:12px; border-radius:10px;
+      border:1px solid var(--border); background:#1b1b1b; color:var(--txt);
+    }
+    .row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px }
+    .btn{
+      width:100%; padding:12px 14px; border:none; border-radius:10px;
+      background:var(--accent); color:#0f0f0f; font-weight:900; cursor:pointer;
+    }
+    .btn:hover{ background:var(--accent-2) }
+    a{ color:var(--muted); text-decoration:none }
+    a:hover{ text-decoration:underline }
+    .error{ margin-top:12px; color:#ff6b6b; font-weight:700; display:none }
+    .ok{ margin-top:12px; color:#00e078; font-weight:700; display:none }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Crie sua conta ✨</h1>
+    <div class="hint">Leva 10 segundos</div>
+
+    <form id="regForm" method="post" action="/register">
+      <label for="nome">Nome</label>
+      <input id="nome" name="nome" placeholder="Seu nome" required />
+
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+
+      <label for="senha">Senha</label>
+      <input id="senha" name="senha" type="password" placeholder="Crie uma senha" required />
+
+      <div class="row">
+        <a href="/login">Já tenho conta</a>
+      </div>
+
+      <button class="btn" type="submit">Criar conta</button>
+
+      <div id="err" class="error">Erro ao registrar</div>
+      <div id="ok" class="ok">Conta criada! Redirecionando…</div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('regForm');
+    const err = document.getElementById('err');
+    const ok  = document.getElementById('ok');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.style.display = 'none'; ok.style.display = 'none';
+      const fd = new FormData(form);
+      const res = await fetch('/register', { method: 'POST', body: fd });
+      if(res.ok){
+        ok.style.display = 'block';
+        setTimeout(()=> window.location.href = '/login', 900);
+      }else{
+        const data = await res.json().catch(()=>({}));
+        err.textContent = data.error || 'Erro ao registrar';
+        err.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

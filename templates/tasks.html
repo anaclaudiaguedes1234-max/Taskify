@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Minhas Tarefas – Taskify</title>
+  <style>
+    :root{
+      --bg:#0f0f0f; --panel:#151515; --border:#2a2a2a; --muted:#bdbdbd;
+      --txt:#eaeaea; --accent:#00ff88; --accent-2:#00e078;
+      --danger:#ff4d4d; --danger-2:#ff3333;
+    }
+    *{ box-sizing:border-box; margin:0; padding:0 }
+    body{
+      background:var(--bg);
+      color:var(--txt);
+      font-family:Arial,system-ui,Segoe UI,Roboto;
+      padding:24px;
+      min-height:100vh;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:20px;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    h1{ font-size:1.6rem; }
+    .hint{ color:var(--muted); font-size:.9rem; }
+    .welcome{
+      background:rgba(0,255,136,0.08);
+      border:1px solid rgba(0,255,136,0.3);
+      color:var(--accent);
+      padding:10px 16px;
+      border-radius:12px;
+      margin-bottom:20px;
+      font-weight:600;
+      text-align:center;
+      animation:fadein 0.6s ease-in;
+    }
+    @keyframes fadein{ from{opacity:0; transform:translateY(-5px)} to{opacity:1; transform:translateY(0)} }
+
+    .btn{
+      border:none;
+      border-radius:10px;
+      padding:10px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .btn-accent{ background:var(--accent); color:#0f0f0f; }
+    .btn-accent:hover{ background:var(--accent-2); }
+    .btn-outline{ background:transparent; border:1px solid var(--border); color:var(--txt); }
+    .btn-outline:hover{ background:#1b1b1b; }
+    .btn-danger{ background:var(--danger); color:#fff; }
+    .btn-danger:hover{ background:var(--danger-2); }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:14px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+      position:relative;
+      transition:.2s;
+    }
+    .card:hover{ border-color:#3a3a3a; transform:translateY(-1px); }
+
+    .title{ font-size:1.05rem; font-weight:800; margin-bottom:6px; }
+    .desc{ color:var(--muted); margin-bottom:12px; white-space:pre-wrap; min-height:24px; }
+
+    .meta{ display:flex; justify-content:space-between; align-items:center; }
+    .badge{
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:800;
+      border:1px solid var(--border);
+    }
+    .badge-pendente{ color:#ffd166; background:#1c1707; border-color:#5a4a1f; }
+    .badge-done{ color:#0f311f; background:#b5f3d3; border-color:#7be3b1; }
+
+    .actions{ display:flex; gap:8px; }
+    .btn-ghost{ background:#222; color:var(--txt); border:1px solid var(--border); }
+    .btn-ghost:hover{ background:#2b2b2b; }
+
+    .done{ outline:2px solid rgba(0,255,136,.15); }
+    .done .badge{ background:#b5f3d3; color:#0f311f; border-color:#7be3b1; }
+
+    .fade-out{ opacity:0; transform:scale(.98); transition:.18s ease; }
+
+    .toast-wrap{ position:fixed; top:16px; right:16px; display:flex; flex-direction:column; gap:10px; z-index:9999; }
+    .toast{
+      background:#1c1c1c; border:1px solid #343434; color:var(--txt);
+      padding:12px 14px; border-radius:10px;
+      min-width:220px; display:flex; align-items:center; justify-content:space-between;
+      animation:slide-in .2s ease;
+    }
+    .toast.success{ border-color:#256c45; }
+    .toast.error{ border-color:#6c2525; }
+    .toast .close{ background:transparent; border:none; color:var(--muted); font-size:16px; cursor:pointer; }
+    @keyframes slide-in{ from{ transform:translateY(-8px); opacity:0 } to{ transform:translateY(0); opacity:1 } }
+  </style>
+</head>
+<body>
+
+  <!-- mensagem de boas-vindas -->
+  <div class="welcome">👋 Olá! Que bom te ver por aqui 💪</div>
+
+  <header>
+    <div>
+      <h1>Minhas Tarefas</h1>
+      <div class="hint">Gerencie suas tarefas sem recarregar a página ✨</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a class="btn btn-outline" href="/">Início</a>
+      <a class="btn btn-accent" href="/tasks/new">+ Nova Tarefa</a>
+      <button id="logoutBtn" class="btn btn-danger">Sair</button>
+    </div>
+  </header>
+
+  <section class="grid" id="tasksGrid">
+    {% for task in tasks %}
+      <article class="card {% if task.status == 'concluída' %}done{% endif %}" data-id="{{ task.id }}">
+        <h2 class="title">{{ task.title }}</h2>
+        <p class="desc">{{ task.description }}</p>
+        <div class="meta">
+          <span class="badge {% if task.status == 'concluída' %}badge-done{% else %}badge-pendente{% endif %}">
+            {% if task.status == 'concluída' %}Concluída ✅{% else %}Pendente⌛{% endif %}
+          </span>
+          <div class="actions">
+            <button class="btn btn-ghost action-complete" {% if task.status == 'concluída' %}disabled{% endif %}>Concluir</button>
+            <button class="btn btn-danger action-delete">Apagar</button>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    const grid = document.getElementById('tasksGrid');
+    const toastWrap = document.getElementById('toastWrap');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function showToast(message, type='success', timeout=2600){
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `
+        <span>${message}</span>
+        <button class="close" onclick="this.parentElement.remove()">×</button>
+      `;
+      toastWrap.appendChild(el);
+      setTimeout(() => el.remove(), timeout);
+    }
+
+    async function apiUpdateStatus(id, status){
+      const res = await fetch(`/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if(!res.ok) throw new Error('Falha ao atualizar');
+      return res.json();
+    }
+
+    async function apiDelete(id){
+      const res = await fetch(`/tasks/${id}`, { method: 'DELETE' });
+      if(!res.ok) throw new Error('Falha ao deletar');
+      return res.json();
+    }
+
+    function markDoneCard(card){
+      card.classList.add('done');
+      const badge = card.querySelector('.badge');
+      badge.classList.remove('badge-pendente');
+      badge.classList.add('badge-done');
+      badge.textContent = 'Concluída ✅';
+      card.querySelector('.action-complete').disabled = true;
+    }
+
+    function removeCard(card){
+      card.classList.add('fade-out');
+      setTimeout(() => card.remove(), 180);
+    }
+
+    grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const card = e.target.closest('.card');
+      const id = card?.dataset?.id;
+
+      try{
+        if(btn.classList.contains('action-complete')){
+          await apiUpdateStatus(id, 'concluída');
+          markDoneCard(card);
+          showToast('Tarefa concluída com sucesso ✅');
+        }
+        if(btn.classList.contains('action-delete')){
+          await apiDelete(id);
+          removeCard(card);
+          showToast('Tarefa deletada com sucesso 🗑️');
+        }
+      }catch(err){
+        showToast('Ops! Algo deu errado.', 'error', 3200);
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      showToast('Sessão encerrada com sucesso 👋', 'success');
+      setTimeout(() => {
+        window.location.href = '/logout';
+      }, 1300);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login – Taskify</title>
+  <style>
+    :root{
+      --bg:#0f0f0f; --panel:#151515; --border:#2a2a2a; --muted:#bdbdbd;
+      --txt:#eaeaea; --accent:#00ff88; --accent-2:#00e078;
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; background:var(--bg); color:var(--txt);
+      font-family:Arial,system-ui; display:grid; place-items:center;
+      min-height:100vh; padding:24px;
+    }
+    .card{
+      width:min(420px,92vw); background:#141414;
+      border:1px solid var(--border); border-radius:14px;
+      padding:22px 18px 18px;
+    }
+    h1{ margin:0 0 4px 0; font-size:1.6rem }
+    .hint{ color:var(--muted); font-size:.95rem; margin-bottom:16px }
+    label{ display:block; font-weight:700; margin:12px 0 6px }
+    .link{ display:block; font-weight:700; margin:12px 0 6px }
+    input{
+      width:100%; padding:12px; border-radius:10px;
+      border:1px solid var(--border); background:#1b1b1b; color:var(--txt);
+    }
+    .row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px }
+    .btn{
+      width:100%; padding:12px 14px; border:none; border-radius:10px;
+      background:var(--accent); color:#0f0f0f; font-weight:900; cursor:pointer;
+    }
+    .btn:hover{ background:var(--accent-2) }
+    a{ color:var(--muted); text-decoration:none }
+    a:hover{ text-decoration:underline }
+    .error{ margin-top:12px; color:#ff6b6b; font-weight:700; display:none }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Bem-vinda de volta 👋</h1>
+    <div class="hint">Entre com seu e-mail e senha para continuar</div>
+
+    <form id="loginForm" method="post" action="/login">
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+
+      <label for="senha">Senha</label>
+      <input id="senha" name="senha" type="password" placeholder="••••••••" required />
+
+      <div class="row">
+        <a href="/register" class="link">Não tem conta? Criar agora</a>
+      </div>
+
+      <button class="btn" type="submit">Login</button>
+
+      <div id="err" class="error">Credenciais inválidas</div>
+    </form>
+  </div>
+
+  <script>
+    // UX bonito: trata erro sem recarregar
+    const form = document.getElementById('loginForm');
+    const err = document.getElementById('err');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.style.display = 'none';
+      const fd = new FormData(form);
+      const res = await fetch('/login', { method: 'POST', body: fd });
+      if(res.ok){
+        window.location.href = '/tasks'; // login ok
+      }else{
+        try{
+          const data = await res.json();
+          err.textContent = data.error || 'Credenciais inválidas';
+        }catch{
+          err.textContent = 'Credenciais inválidas';
+        }
+        err.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
